@@ -1,0 +1,40 @@
+<!DOCTYPE html>
+<html>
+<head>
+  <title>Real-Time Leaderboard</title>
+  <script src="https://cdn.socket.io/4.6.1/socket.io.min.js"></script>
+</head>
+<body>
+  <h1>🏆 Real-Time Leaderboard</h1>
+  <button onclick="updateScore()">Update Score</button>
+  <button onclick="getTopPlayers()">Show Top 5</button>
+  <ul id="leaderboard"></ul>
+
+  <script>
+    const socket = io("http://localhost:3000");
+
+    const playerId = "player_" + Math.floor(Math.random() * 1000);
+    const region = "NA";
+    const gameMode = "solo";
+
+    function updateScore() {
+      const score = Math.floor(Math.random() * 100) + 1;
+      socket.emit("updateScore", { playerId, score, region, gameMode });
+    }
+
+    function getTopPlayers() {
+      socket.emit("getTopPlayers", { region, gameMode, topN: 5 }, (data) => {
+        const leaderboard = document.getElementById("leaderboard");
+        leaderboard.innerHTML = "";
+        data.forEach((entry, i) => {
+          leaderboard.innerHTML += `<li>#${i + 1}: ${entry.playerId} - ${entry.score}</li>`;
+        });
+      });
+    }
+
+    socket.on("leaderboardUpdated", (data) => {
+      console.log("Leaderboard Updated:", data);
+    });
+  </script>
+</body>
+</html>
